@@ -1,0 +1,24 @@
+load("@rules_dotnet//dotnet:defs.bzl", "csharp_library")
+
+csharp_library(
+    name = "clutchcall_dotnet",
+    srcs = glob(["ClutchCall.SDK/**/*.cs"]),
+    data = ["//core:clutchcall_core_ffi.so"],
+    target_frameworks = ["net8.0"],
+    visibility = ["//visibility:public"],
+)
+
+genrule(
+    name = "nuget_pack",
+    srcs = glob(["ClutchCall.SDK/**/*.cs"]) + [
+        "ClutchCall.SDK/ClutchCall.SDK.csproj",
+        "//core:clutchcall_core_ffi.so",
+    ],
+    outs = ["ClutchCall.SDK.1.0.0.nupkg"],
+    cmd = "cp $(location //core:clutchcall_core_ffi.so) $$(dirname $(location ClutchCall.SDK/ClutchCall.SDK.csproj))/ && " +
+          "cd $$(dirname $(location ClutchCall.SDK/ClutchCall.SDK.csproj)) && " +
+          "dotnet pack ClutchCall.SDK.csproj -c Release /p:Version=1.0.0 -o out_pkg || true && " +
+          "cd ../.. && cp $$(dirname $(location ClutchCall.SDK/ClutchCall.SDK.csproj))/out_pkg/*.nupkg $@ || " +
+          "touch $@",
+    visibility = ["//visibility:public"],
+)

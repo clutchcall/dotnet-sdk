@@ -1,0 +1,17 @@
+# Bazel
+/bazel-*
+bazel-bin/
+bazel-out/
+bazel-testlogs/
+
+# OS / editor
+.DS_Store
+*.swp
+.vscode/
+.idea/
+# .NET
+bin/
+obj/
+*.nupkg
+out_pkg/
+*.user
