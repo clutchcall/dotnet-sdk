@@ -1,0 +1,28 @@
+name: publish
+on:
+  push:
+    tags: ['v*']
+  workflow_dispatch: {}
+permissions:
+  contents: read
+  id-token: write
+jobs:
+  publish:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-dotnet@v4
+        with: { dotnet-version: '9.0' }
+      - uses: google-github-actions/auth@v2
+        with:
+          workload_identity_provider: projects/875189167966/locations/global/workloadIdentityPools/github/providers/clutchcall
+          service_account: gh-publish@technomers-internal.iam.gserviceaccount.com
+      - uses: google-github-actions/setup-gcloud@v2
+      - run: |
+          rm -rf /tmp/nugetpub; dotnet pack ClutchCall.SDK -c Release -o /tmp/nugetpub
+          IDL=clutchcall.sdk; V=1.0.0; O=https://artifacts.clutchcall.dev/nuget
+          rm -rf /tmp/nf; mkdir -p /tmp/nf/flatcontainer/$IDL/$V
+          printf '{"version":"3.0.0","resources":[{"@id":"%s/flatcontainer/","@type":"PackageBaseAddress/3.0.0"}]}' "$O" > /tmp/nf/index.json
+          echo "{\"versions\":[\"$V\"]}" > /tmp/nf/flatcontainer/$IDL/index.json
+          cp /tmp/nugetpub/ClutchCall.SDK.$V.nupkg /tmp/nf/flatcontainer/$IDL/$V/$IDL.$V.nupkg
+          gcloud storage rsync -r /tmp/nf gs://clutchcall-packages/nuget
