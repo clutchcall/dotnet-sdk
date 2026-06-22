@@ -4,7 +4,9 @@ csharp_library(
     name = "clutchcall_dotnet",
     srcs = glob(["ClutchCall.SDK/**/*.cs"]),
     data = ["//core:clutchcall_core_ffi.so"],
-    target_frameworks = ["net8.0"],
+    # net9.0: System.Net.Quic GA (ClutchCallClient) — net8.0 would need preview
+    # features. Matches ClutchCall.SDK.csproj.
+    target_frameworks = ["net9.0"],
     visibility = ["//visibility:public"],
 )
 

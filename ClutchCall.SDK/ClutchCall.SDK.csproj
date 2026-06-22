@@ -1,2 +1,20 @@
-<Project Sdk="Microsoft.NET.Sdk"> <PropertyGroup> <TargetFramework>netstandard2.0</TargetFramework> <LangVersion>10.0</LangVersion> <Nullable>enable</Nullable> <AllowUnsafeBlocks>true</AllowUnsafeBlocks> </PropertyGroup> <ItemGroup> <PackageReference Include="System.Text.Json" Version="8.0.0" /> <PackageReference Include="Microsoft.IdentityModel.Tokens" Version="7.0.3" /> <PackageReference Include="System.IdentityModel.Tokens.Jwt" Version="7.0.3" /> </ItemGroup>
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <!-- net9.0: System.Net.Quic (QuicConnection/QuicStream, used by the
+         call-control ClutchCallClient) GA'd in .NET 9 — no preview flag needed.
+         The prior netstandard2.0 target had no System.Net.Quic at all, so this
+         project never actually compiled there. Matches dotnet/BUILD.bazel. -->
+    <TargetFramework>net9.0</TargetFramework>
+    <LangVersion>latest</LangVersion>
+    <Nullable>enable</Nullable>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    <!-- System.Net.Quic (ClutchCallClient) is guarded by CA1416 as not supported
+         on every platform (browser/iOS/etc.); this SDK runs server-side
+         (linux/macOS/windows) where QUIC IS supported, so silence it. -->
+    <NoWarn>$(NoWarn);CA1416</NoWarn>
+  </PropertyGroup>
+  <!-- No PackageReferences: System.Text.Json is in-box on net9, and the
+       Microsoft.IdentityModel.* / System.IdentityModel.Tokens.Jwt packages were
+       UNUSED dead deps (no JWT/signing usage anywhere) — removing them drops two
+       known-vulnerable packages (NU1902) and a needless NuGet restore. -->
 </Project>
